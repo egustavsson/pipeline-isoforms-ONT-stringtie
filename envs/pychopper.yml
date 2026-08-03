@@ -1,10 +1,8 @@
-name: ont_stringtie
-
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 
 dependencies:
-  - python=3.11
-  - snakemake=9.23.1
+  - python=3.9
+  - pychopper=2.7.10

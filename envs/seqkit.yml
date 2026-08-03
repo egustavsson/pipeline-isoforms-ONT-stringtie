@@ -1,10 +1,7 @@
-name: ont_stringtie
-
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 
 dependencies:
-  - python=3.11
-  - snakemake=9.23.1
+  - seqkit=2.13.0

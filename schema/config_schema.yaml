@@ -1,6 +1,9 @@
-$schema: "http://json-schema.org/draft-06/schema#"
+$schema: "http://json-schema.org/draft-07/schema#"
 
-description: snakemake configuration file
+title: ONT long-read RNA-seq pipeline configuration
+description: Configuration schema for ONT cDNA and direct RNA processing
+type: object
+additionalProperties: false
 
 properties:
   workdir:
@@ -11,6 +14,7 @@ properties:
     type: string
     default: "sample"
     minLength: 1
+    pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*$"
 
   genome:
     type: string
@@ -19,16 +23,157 @@ properties:
   reads_fastq:
     type: string
     minLength: 1
-  
+
   concatenate_reads:
     type: boolean
     default: false
 
+  library_type:
+    type: string
+    enum: [cdna, direct_rna]
+    default: cdna
+
+  read_preprocessing:
+    type: string
+    enum: [pychopper, restrander, none]
+    default: none
+
+  restrander_executable:
+    type: string
+    default: restrander
+    minLength: 1
+
+  restrander_config:
+    type: string
+    default: ""
+
+  pychopper_kit:
+    type: string
+    enum: ["", PCS109, PCS110, PCS111, PCS114, PCB111, PCB114, LSK114]
+    default: ""
+
+  pychopper_opts:
+    type: string
+    default: ""
+
+  minimap2_extra_opts:
+    type: string
+    default: "--MD"
+
   threads:
     type: integer
-    default: 30
+    minimum: 1
+    default: 200
+
+  seqkit_threads:
+    type: integer
+    minimum: 1
+    default: 16
+
+  pychopper_threads:
+    type: integer
+    minimum: 1
+    default: 64
+
+  minimap2_threads:
+    type: integer
+    minimum: 1
+    default: 144
+
+  samtools_sort_threads:
+    type: integer
+    minimum: 1
+    default: 48
+
+  samtools_threads:
+    type: integer
+    minimum: 1
+    default: 16
+
+  stringtie_threads:
+    type: integer
+    minimum: 1
+    default: 32
+
+  samtools_sort_memory:
+    type: string
+    pattern: "^[1-9][0-9]*([KMG])?$"
+    default: "1G"
+
+  use_guide_annotation:
+    type: boolean
+    default: false
+
+  annotation:
+    type: string
+    default: ""
+
+  stringtie_strand:
+    type: string
+    enum: ["", "--rf", "--fr"]
+    default: ""
+
+  stringtie_opts:
+    type: string
+    default: ""
 
 required:
   - workdir
   - genome
   - reads_fastq
+  - library_type
+  - read_preprocessing
+
+allOf:
+  - if:
+      properties:
+        library_type:
+          const: direct_rna
+      required: [library_type]
+    then:
+      properties:
+        read_preprocessing:
+          const: none
+
+  - if:
+      properties:
+        read_preprocessing:
+          const: restrander
+      required: [read_preprocessing]
+    then:
+      properties:
+        library_type:
+          const: cdna
+        restrander_config:
+          type: string
+          minLength: 1
+      required:
+        - library_type
+        - restrander_config
+
+  - if:
+      properties:
+        read_preprocessing:
+          const: pychopper
+      required: [read_preprocessing]
+    then:
+      properties:
+        library_type:
+          const: cdna
+        pychopper_kit:
+          enum: [PCS109, PCS110, PCS111, PCS114, PCB111, PCB114, LSK114]
+      required:
+        - library_type
+        - pychopper_kit
+
+  - if:
+      properties:
+        use_guide_annotation:
+          const: true
+      required: [use_guide_annotation]
+    then:
+      properties:
+        annotation:
+          type: string
+          minLength: 1
+      required: [annotation]

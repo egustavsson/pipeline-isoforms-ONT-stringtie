@@ -1,41 +1,111 @@
-## General pipeline parameters:
-## For optional parameters either leave empty string ("") or comment out ("#") the parameter
+## General pipeline parameters
+## Leave optional free-text parameters as an empty string ("") when unused.
 
-# working directory (required):
-workdir: "/home/MinaRyten/Emil/public_data/long-read/Ebbert_2023/pipeline-isoforms-ONT-stringtie/"
+# ----------------------------------------------------------------
+# Input and output
 
-# prefix of all output files (optional; default = "sample")
-sample_name: "sample_1092_PAM41667"
+# Parent directory for pipeline outputs (required).
+# Results will be written to: <workdir>/<sample_name>/
+workdir: "/home/MinaRyten/Emil/zMISC/"
 
-# reference genome as fasta (required):
+# Sample name and prefix used for output files.
+sample_name: "pool1_barcode3"
+
+# Reference genome in FASTA format (required).
 genome: "/home/MinaRyten/Emil/references/GRCh38.primary_assembly.genome.fa"
 
-# ONT reads in fastq format (required):
-reads_fastq: "/home/MinaRyten/Emil/public_data/long-read/Ebbert_2023/sample_1092_PAM41667.fastq.gz"
+# Input ONT reads as a FASTQ file or a directory containing FASTQ files.
+# For SMART-Seq mRNA Long Read data, use the FASTQ output for one barcode
+# after Dorado demultiplexing with Takara's custom configuration files.
+# Supported extensions: .fastq, .fq, .fastq.gz and .fq.gz.
+reads_fastq: "/home/JohnHardy/HermioneUgolini/260421_FM-Geniospasm_SMART-Seq_run1/Pool1/Pool1-demux/no_sample/19700101_0000_0_UNKNOWN_00000000/fastq_pass/barcode03/UNKNOWN_pass_barcode03_00000000_00000000_0.fastq"
 
-# The path above is a directory, find and concatenate fastq files:
-concatenate_reads: False
+# Set to true when reads_fastq is a directory containing multiple FASTQ files.
+# Files are collected recursively, sorted by path and concatenated deterministically.
+concatenate_reads: false
 
-# Process cDNA reads using pychopper, turn off for direct RNA:
-run_pychopper: True
 
-# kit used (e.g. PCS109,PCS110,PCS111,LSK114). Default (PCS109)
-kit: "PCS111"
+# ----------------------------------------------------------------
+# Library type and read preprocessing
 
-# Options passed to pychopper:
+# Sequencing library type.
+# Allowed values: cdna or direct_rna.
+library_type: "cdna"
+
+# Read preprocessing method.
+# Allowed values:
+#   restrander = protocol-specific read orientation and artefact filtering
+#   pychopper  = full-length read identification for compatible ONT cDNA kits
+#   none       = use the input reads without orientation or primer filtering
+# Use none for direct RNA data.
+read_preprocessing: "restrander"
+
+# Restrander is installed by environment.yml. Usually leave this unchanged.
+restrander_executable: "restrander"
+
+# SMART-Seq-specific Restrander configuration supplied by Takara Bio.
+restrander_config: "/home/MinaRyten/Emil/SMART-Seq_mRNA_Long_Read-demux-files/config/SMART-Seq_mRNA_LR.json"
+
+# Required when read_preprocessing is pychopper.
+# This must match the ONT cDNA library preparation.
+# e.g. "PCS114" or "LSK114".
+pychopper_kit: ""
+
+# Additional options passed directly to Pychopper.
 pychopper_opts: ""
 
-# Options passed to minimap2:
-minimap2_opts: "-uf -k14 --MD"
 
-# threads (default = 30)
+# ----------------------------------------------------------------
+# Genome alignment
+
+# Additional options passed to minimap2 after the protocol-specific settings.
+# Protocol-specific defaults are selected automatically from library_type:
+#   cdna after Restrander: -ax splice -uf
+#   cdna after Pychopper:  -ax splice -uf
+#   unprocessed cdna:      -ax splice -ub
+#   direct_rna: -ax splice -uf -k14
+minimap2_extra_opts: "--MD"
+
+# Maximum number of threads available to the workflow.
 threads: 200
 
-# Use exiting annotation as guide for stringtie2:
-use_guide_annotation: False
+# Per-tool thread allocations.
+# minimap2 and samtools sort run simultaneously and must sum to no more
+# than threads.
+# Restrander is currently single-threaded.
+seqkit_threads: 16
+pychopper_threads: 64
+minimap2_threads: 144
+samtools_sort_threads: 48
+samtools_threads: 16
+stringtie_threads: 32
 
-# reference annotation as GTF (required if use_guide_annotation = true):
+# Memory available to each samtools sort thread.
+# This is per thread; 48 threads at 1G may use approximately 48 GB.
+samtools_sort_memory: "1G"
+
+
+# ----------------------------------------------------------------
+# Transcript assembly
+
+# Use an existing transcript annotation to guide StringTie assembly.
+# Reference-guided assembly is recommended when an appropriate annotation
+# matching the genome build is available.
+use_guide_annotation: false
+
+# Reference annotation in GTF format.
+# Required when use_guide_annotation is true.
 annotation: ""
 
-# Options passed to stringtie2:
+# StringTie strandedness option.
+# Allowed values:
+#   ""     = infer transcript strand from the spliced alignments
+#   "--rf" = first-strand orientation
+#   "--fr" = second-strand orientation
+# Leave empty unless the library orientation has been independently confirmed.
+stringtie_strand: ""
+
+# Additional options passed directly to StringTie.
+# -f sets the minimum isoform abundance as a fraction of the most abundant
+# transcript at the locus.
 stringtie_opts: "-f 0.005"

@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+  - genomedk
+  - nodefaults
+
+dependencies:
+  - genomedk::restrander=1.1.1
