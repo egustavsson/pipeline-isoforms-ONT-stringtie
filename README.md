@@ -1,10 +1,7 @@
 # pipeline-isoforms-ONT-stringtie
 
 <!-- badges: start -->
-![Maintainer](https://img.shields.io/badge/maintainer-egustavsson-blue)
 ![Generic badge](https://img.shields.io/badge/WMS-snakemake-blue.svg)
-![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
-![Lifecycle:maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 <!-- badges: end -->
 
