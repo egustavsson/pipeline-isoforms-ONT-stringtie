@@ -6,23 +6,23 @@
 
 # Parent directory for pipeline outputs (required).
 # Results will be written to: <workdir>/<sample_name>/
-workdir: "/home/MinaRyten/Emil/zMISC/"
+workdir: ""
 
 # Sample name and prefix used for output files.
-sample_name: "pool1_barcode3"
+sample_name: ""
 
 # Reference genome in FASTA format (required).
-genome: "/home/MinaRyten/Emil/references/GRCh38.primary_assembly.genome.fa"
+genome: ""
 
 # Input ONT reads as a FASTQ file or a directory containing FASTQ files.
 # For SMART-Seq mRNA Long Read data, use the FASTQ output for one barcode
 # after Dorado demultiplexing with Takara's custom configuration files.
 # Supported extensions: .fastq, .fq, .fastq.gz and .fq.gz.
-reads_fastq: "/home/JohnHardy/HermioneUgolini/260421_FM-Geniospasm_SMART-Seq_run1/Pool1/Pool1-demux/no_sample/19700101_0000_0_UNKNOWN_00000000/fastq_pass/barcode03/UNKNOWN_pass_barcode03_00000000_00000000_0.fastq"
+reads_fastq: ""
 
 # Set to true when reads_fastq is a directory containing multiple FASTQ files.
 # Files are collected recursively, sorted by path and concatenated deterministically.
-concatenate_reads: false
+concatenate_reads: true
 
 
 # ----------------------------------------------------------------
@@ -43,8 +43,10 @@ read_preprocessing: "restrander"
 # Restrander is installed by environment.yml. Usually leave this unchanged.
 restrander_executable: "restrander"
 
-# SMART-Seq-specific Restrander configuration supplied by Takara Bio.
-restrander_config: "/home/MinaRyten/Emil/SMART-Seq_mRNA_Long_Read-demux-files/config/SMART-Seq_mRNA_LR.json"
+# Restrander protocol configuration.
+# Standard ONT SQK-PCS111 libraries use configs/restrander/PCB111.json.
+# A custom configuration can be supplied for other library protocols.
+restrander_config: "configs/restrander/PCB111.json"
 
 # Required when read_preprocessing is pychopper.
 # This must match the ONT cDNA library preparation.

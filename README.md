@@ -21,16 +21,23 @@ uses `StringTie` to assemble and quantify transcripts.
 
 - ONT cDNA or direct RNA reads in FASTQ format
 - Reference genome assembly in FASTA format
-- For SMART-Seq mRNA Long Read data, Dorado-demultiplexed FASTQ files and the
-  Takara Bio `SMART-Seq_mRNA_LR.json` Restrander configuration
+- For Restrander preprocessing, a protocol-specific JSON configuration matching
+  the library preparation. Several configurations are included in
+  [`configs/restrander/`](configs/restrander/), including `PCB111.json` for
+  standard, unmodified ONT SQK-PCS111 cDNA-PCR libraries. Configurations for
+  other protocols may be obtained from the
+  [Restrander configuration directory](https://github.com/mritchielab/restrander/tree/main/config)
+  or the relevant library provider, such as the
+  [Takara Bio SMART-Seq mRNA Long Read resources](https://www.takarabio.com/products/next-generation-sequencing/bioinformatics-tools/smart-seq-mrna-long-read-demultiplexing-for-ont-sequencing-data).
 - Optional reference annotation in GTF format, for example a matching
   [GENCODE GTF](https://www.gencodegenes.org/human/)
 
 ## Dependencies
 
 - [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
-- The remaining dependencies, including Snakemake, Pychopper and Restrander,
-  are installed through `environment.yml`
+- Snakemake is installed through `environment.yml`. Tool-specific Conda
+  environments, including Pychopper and Restrander, are created automatically
+  from the files in `envs/` when the workflow is run with Conda deployment.
 
 ## Installation
 
@@ -49,22 +56,43 @@ conda env create -f environment.yml
 conda activate ont_stringtie
 ```
 
-`environment.yml` installs Restrander 1.1.1 from the third-party `genomedk`
-Conda channel because Restrander is not currently distributed through
-Bioconda. Its upstream repository documents source installation with `make`
-as an alternative.
+`envs/restrander.yml` installs Restrander 1.1.1 from the third-party `genomedk`
+Conda channel. Its upstream repository also documents source installation with
+`make` as an alternative.
 
 ## Configuration
 
 Edit `config.yml` to specify the working directory, sample name, input reads,
 reference genome and analysis options.
 
-For ONT cDNA reads:
+For standard, unmodified ONT SQK-PCS111 cDNA-PCR reads:
 
 ```yaml
 library_type: "cdna"
 read_preprocessing: "restrander"
-restrander_config: "/path/to/config/SMART-Seq_mRNA_LR.json"
+restrander_config: "configs/restrander/PCB111.json"
+```
+
+Restrander names this configuration `PCB111.json`, but it is also the supplied
+configuration for standard SQK-PCS111 libraries. Relative paths are resolved
+from the pipeline directory.
+
+For another Restrander-compatible protocol, provide the appropriate JSON
+configuration:
+
+```yaml
+library_type: "cdna"
+read_preprocessing: "restrander"
+restrander_config: "/path/to/restrander_config.json"
+```
+
+For SMART-Seq mRNA Long Read data, use the Takara Bio configuration supplied
+for that protocol:
+
+```yaml
+library_type: "cdna"
+read_preprocessing: "restrander"
+restrander_config: "/path/to/SMART-Seq_mRNA_LR.json"
 ```
 
 For a compatible ONT cDNA kit using Pychopper:
@@ -181,6 +209,16 @@ Temporary concatenated reads are removed after successful completion.
 Snakefile
 config.yml
 environment.yml
+configs/
+`-- restrander/
+    `-- PCB111.json
+envs/
+|-- alignment.yml
+|-- common.yml
+|-- pychopper.yml
+|-- restrander.yml
+|-- seqkit.yml
+`-- stringtie.yml
 schema/
 `-- config_schema.yaml
 rules/
